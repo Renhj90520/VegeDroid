@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
+import com.xjconvenience.vege.vege.Constants;
 import com.xjconvenience.vege.vege.modules.orderlist.MainActivity;
 import com.xjconvenience.vege.vege.modules.login.LoginActivity;
 import com.xjconvenience.vege.vege.utils.JPushUtil;
@@ -51,7 +52,7 @@ public class MyReceiver extends BroadcastReceiver {
             } else if (JPushInterface.ACTION_NOTIFICATION_OPENED.equals(intent.getAction())) {
                 Logger.d(TAG, "[MyReceiver] 用户点击打开了通知");
 
-                SharedPreferences prefs = context.getSharedPreferences("localinfo", 0);
+                SharedPreferences prefs = context.getSharedPreferences(Constants.PREF_NAME, 0);
                 if (TokenUtil.tokenVerify(prefs)) {
                     //打开自定义的Activity
                     Intent i = new Intent(context, MainActivity.class);

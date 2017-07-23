@@ -31,5 +31,5 @@ public interface IOrderInteractor {
         void onUpdateError(String message);
     }
 
-    void updateOrder(int id, List<PatchDoc> order);
+    void updateOrder(int id, List<PatchDoc> order, OnUpdateFinishListener listener);
 }

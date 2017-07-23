@@ -21,6 +21,10 @@ public interface MainContract {
         void navigateToDetail(Order order);
 
         void showMessage(String message);
+
+        void dialUser(String phone);
+
+        void callMap(double latitude, double longitude);
     }
 
     public interface IMainPresenter {

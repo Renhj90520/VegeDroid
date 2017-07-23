@@ -10,9 +10,11 @@ import java.util.Date;
 public class Order {
     private int Id;
     private String OpenId;
-    private Date CreateTime;
-    private Date CancelTime;
-    private Date FinishTime;
+    private String CreateTime;
+    private String CancelTime;
+
+
+    private String FinishTime;
     private int State;
     private ArrayList<OrderItem> Products;
     private String Phone;
@@ -23,8 +25,8 @@ public class Order {
     private String Area;
     private double DeliveryCharge;
     private String WXOrderId;
-    private String Latitude;
-    private String Longitude;
+    private double Latitude;
+    private double Longitude;
     private String RefundNote;
     private String CancelReason;
     private double TotalCost;
@@ -43,30 +45,6 @@ public class Order {
 
     public void setOpenId(String openId) {
         OpenId = openId;
-    }
-
-    public Date getCreateTime() {
-        return CreateTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        CreateTime = createTime;
-    }
-
-    public Date getCancelTime() {
-        return CancelTime;
-    }
-
-    public void setCancelTime(Date cancelTime) {
-        CancelTime = cancelTime;
-    }
-
-    public Date getFinishTime() {
-        return FinishTime;
-    }
-
-    public void setFinishTime(Date finishTime) {
-        FinishTime = finishTime;
     }
 
     public int getState() {
@@ -149,22 +127,6 @@ public class Order {
         this.WXOrderId = WXOrderId;
     }
 
-    public String getLatitude() {
-        return Latitude;
-    }
-
-    public void setLatitude(String latitude) {
-        Latitude = latitude;
-    }
-
-    public String getLongitude() {
-        return Longitude;
-    }
-
-    public void setLongitude(String longitude) {
-        Longitude = longitude;
-    }
-
     public String getRefundNote() {
         return RefundNote;
     }
@@ -181,11 +143,51 @@ public class Order {
         CancelReason = cancelReason;
     }
 
+    public String getCreateTime() {
+        return CreateTime.substring(0, 18).replace('T', ' ');
+    }
+
+    public void setCreateTime(String createTime) {
+        CreateTime = createTime;
+    }
+
+    public String getCancelTime() {
+        return CancelTime.substring(0, 18).replace('T', ' ');
+    }
+
+    public void setCancelTime(String cancelTime) {
+        CancelTime = cancelTime;
+    }
+
+    public String getFinishTime() {
+        return FinishTime.substring(0, 18).replace('T', ' ');
+    }
+
+    public void setFinishTime(String finishTime) {
+        FinishTime = finishTime;
+    }
+
     public double getTotalCost() {
         return TotalCost;
     }
 
     public void setTotalCost(double totalCost) {
         TotalCost = totalCost;
+    }
+
+    public double getLatitude() {
+        return Latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        Latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return Longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        Longitude = longitude;
     }
 }

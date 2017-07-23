@@ -2,6 +2,8 @@ package com.xjconvenience.vege.vege.webservices;
 
 import android.content.SharedPreferences;
 
+import com.xjconvenience.vege.vege.Constants;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -44,8 +46,8 @@ public class HttpModule {
     @Provides
     OkHttpClient provideOkHttpClient() {
         OkHttpClient client = new OkHttpClient.Builder()
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .addInterceptor(new Interceptor() {
                     @Override

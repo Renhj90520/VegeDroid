@@ -27,6 +27,7 @@ public class MainModule {
         return new OrderInteractor(vegeServices);
     }
 
+    @Provides
     MainContract.IMainPresenter provideMainPresenter(MainContract.IMainView mainView, IOrderInteractor orderInteractor) {
         return new MainPresenter(mainView, orderInteractor);
     }

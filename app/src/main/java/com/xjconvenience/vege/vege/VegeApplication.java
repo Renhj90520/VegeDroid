@@ -39,7 +39,7 @@ public class VegeApplication extends Application {
     }
 
     private HttpComponent getHttpComponent() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = getSharedPreferences(Constants.PREF_NAME, 0);
         return DaggerHttpComponent.builder()
                 .httpModule(new HttpModule(prefs))
                 .build();
