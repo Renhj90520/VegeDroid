@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.JsonReader;
 
+import com.xjconvenience.vege.vege.Constants;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 
 public class TokenUtil {
     public static boolean tokenVerify(SharedPreferences prefs) {
-        String token = prefs.getString("jwttoken", "");
+        String token = prefs.getString(Constants.TOKEN_KEY, "");
         if (token.isEmpty()) {
             return false;
         } else {

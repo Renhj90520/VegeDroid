@@ -8,4 +8,6 @@
     <color name="gray_20">#B3B3B3</color>
     <color name="line_bg">#e6e6e6</color>
     <color name="gray_light">#dcdcdc</color>
+    <color name="paid_back">@android:color/holo_green_light</color>
+    <color name="unpaid_back">@android:color/holo_red_light</color>
 </resources>

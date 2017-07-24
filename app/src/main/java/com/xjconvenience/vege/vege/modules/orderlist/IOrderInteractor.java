@@ -20,6 +20,7 @@ public interface IOrderInteractor {
     void loadOrders(String index,
                     String perPage,
                     String keyword,
+                    String state,
                     String begin,
                     String end,
                     String noshowRemove,

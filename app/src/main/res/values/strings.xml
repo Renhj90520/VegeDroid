@@ -4,4 +4,5 @@
     <string name="login_pwd">密码</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
+    <string name="keywordhint">输入手机号/姓名</string>
 </resources>

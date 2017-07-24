@@ -1,16 +1,20 @@
 package com.xjconvenience.vege.vege.adapters;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.xjconvenience.vege.vege.R;
 import com.xjconvenience.vege.vege.models.Order;
-
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -35,6 +39,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         void deleteOrder(int index);
 
         void refundOrder(int index, String note);
+
+        void payOrder(int index);
 
         void goDetail(int index);
     }
@@ -63,6 +69,11 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public void onBindViewHolder(OrderViewHolder holder, int position) {
         Order order = mOrderList.get(position);
         if (order != null) {
+            if ("1".equals(order.getIsPaid())) {
+                holder.item_wrapper.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.paid_back));
+            } else {
+                holder.item_wrapper.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.unpaid_back));
+            }
             holder.order_id.setText(String.valueOf(order.getId()));
             holder.order_state.setText(convertState(order.getState()));
             holder.create_time.setText(order.getCreateTime());
@@ -76,11 +87,15 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             holder.total_cost.setText(total_cost);
             if (order.getCancelReason() != null && !order.getCancelReason().isEmpty()) {
                 holder.cancel_reason.setText(order.getCancelReason());
-                holder.cancel_reason.setVisibility(View.VISIBLE);
+                holder.reason_wrapper.setVisibility(View.VISIBLE);
+            } else {
+                holder.reason_wrapper.setVisibility(View.GONE);
             }
             if (order.getRefundNote() != null && !order.getRefundNote().isEmpty()) {
                 holder.refund_note.setText(order.getRefundNote());
-                holder.refund_note.setVisibility(View.VISIBLE);
+                holder.note_wrapper.setVisibility(View.VISIBLE);
+            } else {
+                holder.note_wrapper.setVisibility(View.GONE);
             }
         }
     }
@@ -114,6 +129,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     }
 
     public class OrderViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.item_wrapper)
+        CardView item_wrapper;
         @BindView(R.id.order_id)
         TextView order_id;
         @BindView(R.id.order_state)
@@ -132,6 +149,10 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         TextView cancel_reason;
         @BindView(R.id.refund_note)
         TextView refund_note;
+        @BindView(R.id.reason_wrapper)
+        LinearLayout reason_wrapper;
+        @BindView(R.id.note_wrapper)
+        LinearLayout note_wrapper;
 
         @OnClick(R.id.ic_phone)
         public void dialUser() {
@@ -150,19 +171,90 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
         @OnClick(R.id.ic_cancel)
         public void cancelOrder() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(R.layout.fragment_dialog, null);
+            builder.setView(view);
+            final EditText content = (EditText) view.findViewById(R.id.dialog_content);
+            builder.setTitle("取消理由");
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    mListener.cancelOrder(getAdapterPosition(), content.getText().toString());
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
 
-//            mListener.cancelOrder(getAdapterPosition());
+                }
+            });
+
+            builder.create().show();
         }
 
         @OnClick(R.id.ic_delete)
         public void deleteOrder() {
-            mListener.deleteOrder(getAdapterPosition());
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setMessage("确认删除该订单吗？");
+            builder.setTitle("确认");
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    mListener.deleteOrder(getAdapterPosition());
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.create().show();
+        }
+
+        @OnClick(R.id.ic_pay)
+        public void payOrder() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle("确认");
+            builder.setMessage("确认收到该订单的现金支付吗");
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    mListener.payOrder(getAdapterPosition());
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.create().show();
         }
 
         @OnClick(R.id.ic_refund)
         public void refundOrder() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(R.layout.fragment_dialog, null);
+            builder.setView(view);
+            final EditText content = (EditText) view.findViewById(R.id.dialog_content);
+            builder.setTitle("退款备注");
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    mListener.refundOrder(getAdapterPosition(), content.getText().toString());
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
 
-//            mListener.refundOrder(getAdapterPosition());
+                }
+            });
+
+            builder.create().show();
         }
 
         @OnClick(R.id.ic_detail)

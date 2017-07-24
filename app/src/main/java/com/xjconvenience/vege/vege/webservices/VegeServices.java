@@ -28,6 +28,7 @@ public interface VegeServices {
     public Observable<Result<ItemsResult<Order>>> loadOrders(@Query("index") String index,
                                                              @Query("perPage") String perPage,
                                                              @Query("keyword") String keyword,
+                                                             @Query("state") String state,
                                                              @Query("begin") String begin,
                                                              @Query("end") String end,
                                                              @Query("noshowRemove") String noshowRemove);

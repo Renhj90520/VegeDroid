@@ -14,6 +14,7 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -29,8 +30,8 @@ public class OrderInteractor implements IOrderInteractor {
     }
 
     @Override
-    public void loadOrders(String index, String perPage, String keyword, String begin, String end, String noshowRemove, final OnLoadFinishListenter listener) {
-        Observable<Result<ItemsResult<Order>>> loadResp = mVegeServices.loadOrders(index, perPage, keyword, begin, end, noshowRemove);
+    public void loadOrders(String index, String perPage, String keyword, String state, String begin, String end, String noshowRemove, final OnLoadFinishListenter listener) {
+        Observable<Result<ItemsResult<Order>>> loadResp = mVegeServices.loadOrders(index, perPage, keyword, state, begin, end, noshowRemove);
         loadResp.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Result<ItemsResult<Order>>>() {

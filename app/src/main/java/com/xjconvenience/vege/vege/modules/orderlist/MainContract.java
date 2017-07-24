@@ -32,6 +32,6 @@ public interface MainContract {
 
         void refreshOrders();
 
-        void UpdateOrder(int id, List<PatchDoc> order);
+//        void UpdateOrder(int id, List<PatchDoc> order);
     }
 }

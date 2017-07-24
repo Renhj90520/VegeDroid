@@ -52,7 +52,7 @@ public class HttpModule {
                 .addInterceptor(new Interceptor() {
                     @Override
                     public okhttp3.Response intercept(Chain chain) throws IOException {
-                        String token = mSharedPreferences.getString("jwttoken", "");
+                        String token = mSharedPreferences.getString(Constants.TOKEN_KEY, "");
                         Request req = chain.request();
                         Request.Builder newRequest = req.newBuilder().header("Authorization", "Bearer " + token);
                         return chain.proceed(newRequest.build());

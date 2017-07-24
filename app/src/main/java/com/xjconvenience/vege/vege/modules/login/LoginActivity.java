@@ -87,7 +87,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.IL
     @Override
     public void loginSuccess(String token) {
         SharedPreferences.Editor editor = getSharedPreferences(Constants.PREF_NAME, 0).edit();
-        editor.putString("jwttoken", token);
+        editor.putString(Constants.TOKEN_KEY, token);
         editor.putString("username", ed_user_name.getText().toString());
         editor.commit();
         navigateToMain();

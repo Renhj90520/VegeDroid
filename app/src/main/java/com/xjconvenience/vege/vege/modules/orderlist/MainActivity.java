@@ -1,24 +1,39 @@
 package com.xjconvenience.vege.vege.modules.orderlist;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.xjconvenience.vege.vege.Constants;
 import com.xjconvenience.vege.vege.R;
 import com.xjconvenience.vege.vege.VegeApplication;
 import com.xjconvenience.vege.vege.adapters.OrderListAdapter;
 import com.xjconvenience.vege.vege.models.Order;
+import com.xjconvenience.vege.vege.modules.login.LoginActivity;
 import com.xjconvenience.vege.vege.modules.orderdetail.OrderDetailActivity;
+import com.xjconvenience.vege.vege.modules.share.ShareActivity;
 import com.xjconvenience.vege.vege.utils.PackUtil;
 
 import javax.inject.Inject;
@@ -56,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
         mToolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(mToolbar);
 
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("生鲜派送");
+
         order_list.setLayoutManager(new LinearLayoutManager(this));
         DaggerMainComponent.builder().vegeServicesComponent(((VegeApplication) getApplication()).getVegeServicesComponent())
                 .mainModule(new MainModule(this))
@@ -92,6 +110,74 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
     protected void onPause() {
         isForeground = false;
         super.onPause();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.menu_search:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+                View view = inflater.inflate(R.layout.dialog_search, null);
+                EditText keyword = (EditText) view.findViewById(R.id.keyword);
+                ((MainPresenter) mPresenter).setKeyword(keyword.getText().toString());
+                Spinner state = (Spinner) view.findViewById(R.id.state);
+                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.state_list, android.R.layout.simple_spinner_item);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                state.setAdapter(adapter);
+
+                state.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        ((MainPresenter) mPresenter).setState(String.valueOf(i - 1));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+                builder.setView(view);
+                builder.setTitle("查询");
+                builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        mPresenter.refreshOrders();
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                builder.create().show();
+                return true;
+            case R.id.menu_exit:
+
+                SharedPreferences pref = getSharedPreferences(Constants.PREF_NAME, 0);
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString(Constants.TOKEN_KEY, "");
+                editor.commit();
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+                return true;
+            case R.id.menu_share:
+                Intent shareIntent = new Intent(this, ShareActivity.class);
+                startActivity(shareIntent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

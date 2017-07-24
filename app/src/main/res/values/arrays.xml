@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="state_list">
+        <item>全部</item>
+        <item>未支付</item>
+        <item>已支付</item>
+        <item>已联系</item>
+        <item>派送中</item>
+        <item>已取消</item>
+        <item>交易完成</item>
+        <item>已退款</item>
+    </string-array>
+</resources>

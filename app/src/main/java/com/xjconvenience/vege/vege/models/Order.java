@@ -30,6 +30,7 @@ public class Order {
     private String RefundNote;
     private String CancelReason;
     private double TotalCost;
+    private String IsPaid;
 
     public int getId() {
         return Id;
@@ -144,7 +145,7 @@ public class Order {
     }
 
     public String getCreateTime() {
-        return CreateTime.substring(0, 18).replace('T', ' ');
+        return CreateTime.substring(0, 19).replace('T', ' ');
     }
 
     public void setCreateTime(String createTime) {
@@ -152,7 +153,7 @@ public class Order {
     }
 
     public String getCancelTime() {
-        return CancelTime.substring(0, 18).replace('T', ' ');
+        return CancelTime.substring(0, 19).replace('T', ' ');
     }
 
     public void setCancelTime(String cancelTime) {
@@ -160,7 +161,7 @@ public class Order {
     }
 
     public String getFinishTime() {
-        return FinishTime.substring(0, 18).replace('T', ' ');
+        return FinishTime.substring(0, 19).replace('T', ' ');
     }
 
     public void setFinishTime(String finishTime) {
@@ -189,5 +190,13 @@ public class Order {
 
     public void setLongitude(double longitude) {
         Longitude = longitude;
+    }
+
+    public String getIsPaid() {
+        return IsPaid;
+    }
+
+    public void setIsPaid(String isPaid) {
+        IsPaid = isPaid;
     }
 }
