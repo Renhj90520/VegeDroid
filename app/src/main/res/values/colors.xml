@@ -10,4 +10,5 @@
     <color name="gray_light">#dcdcdc</color>
     <color name="paid_back">@android:color/holo_green_light</color>
     <color name="unpaid_back">@android:color/holo_red_light</color>
+    <color name="refund_back">@android:color/darker_gray</color>
 </resources>

@@ -3,6 +3,7 @@ package com.xjconvenience.vege.vege.modules.orderlist;
 import com.xjconvenience.vege.vege.models.ItemsResult;
 import com.xjconvenience.vege.vege.models.Order;
 import com.xjconvenience.vege.vege.models.PatchDoc;
+import com.xjconvenience.vege.vege.models.RefundWrapper;
 import com.xjconvenience.vege.vege.models.Result;
 import com.xjconvenience.vege.vege.webservices.VegeServices;
 
@@ -62,6 +63,30 @@ public class OrderInteractor implements IOrderInteractor {
                     public void accept(@NonNull Result<Boolean> booleanResult) throws Exception {
                         if (booleanResult.getState() == 1) {
                             listener.onUpdateSuccess();
+                        } else {
+                            listener.onUpdateError(booleanResult.getMessage());
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(@NonNull Throwable throwable) throws Exception {
+                        listener.onUpdateError(throwable.getMessage());
+                    }
+                });
+    }
+
+    @Override
+    public void refundOrder(int id, RefundWrapper wrapper, final OnUpdateFinishListener listener) {
+        Observable<Result<Boolean>> refund = mVegeServices.refundOrder(id, wrapper);
+        refund.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Result<Boolean>>() {
+                    @Override
+                    public void accept(@NonNull Result<Boolean> booleanResult) throws Exception {
+                        if (booleanResult.getState() == 1) {
+                            listener.onUpdateSuccess();
+                        } else {
+                            listener.onUpdateError(booleanResult.getMessage());
                         }
                     }
                 }, new Consumer<Throwable>() {

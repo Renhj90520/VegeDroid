@@ -5,4 +5,5 @@
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
     <string name="keywordhint">输入手机号/姓名</string>
+    <string name="refund_label">退款金额</string>
 </resources>

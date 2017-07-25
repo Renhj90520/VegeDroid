@@ -1,14 +1,20 @@
 package com.xjconvenience.vege.vege.modules.orderlist;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v4.app.DialogFragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.xjconvenience.vege.vege.R;
 import com.xjconvenience.vege.vege.adapters.OrderListAdapter;
 import com.xjconvenience.vege.vege.models.Order;
 import com.xjconvenience.vege.vege.models.OrderItem;
 import com.xjconvenience.vege.vege.models.PatchDoc;
+import com.xjconvenience.vege.vege.models.RefundWrapper;
 import com.xjconvenience.vege.vege.models.Result;
 
 import java.util.ArrayList;
@@ -217,10 +223,74 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
     }
 
     @Override
-    public void refundOrder(int index, String note) {
-        Order order = mOrderList.get(index);
+    public void refundOrder(final int index) {
+        final Order order = mOrderList.get(index);
         if (order != null) {
-            //TODO
+            if ("1".equals(order.getIsPaid())) {
+                Context context = (MainActivity) mMainView;
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                View view = inflater.inflate(R.layout.fragment_dialog, null);
+                builder.setView(view);
+                final EditText content = (EditText) view.findViewById(R.id.dialog_content);
+                content.setHint("请输入退款备注");
+
+                TextView total_cost = (TextView) view.findViewById(R.id.refund_total_cost);
+                String total = "订单金额：￥" + order.getTotalCost();
+                if (order.getDeliveryCharge() != 0) {
+                    total += "(含运费" + order.getDeliveryCharge() + "元)";
+                }
+                total_cost.setText(total);
+                total_cost.setVisibility(View.VISIBLE);
+
+                TextView refund_label = (TextView) view.findViewById(R.id.refund_label);
+                refund_label.setVisibility(View.VISIBLE);
+
+                final EditText refund_cost = (EditText) view.findViewById(R.id.refund_cost);
+                refund_cost.setText(String.valueOf(order.getTotalCost()));
+                refund_cost.setVisibility(View.VISIBLE);
+
+                double refundCost = Double.parseDouble(refund_cost.getText().toString());
+                double totalCost = order.getTotalCost();
+                if (refundCost > totalCost) {
+                    mMainView.showMessage("退款失败：退款金额大于订单金额");
+                } else {
+                    final RefundWrapper wrapper = new RefundWrapper();
+                    wrapper.setTotalCost((int) (totalCost * 100));
+                    wrapper.setRefundCost((int) (refundCost * 100));
+                    wrapper.setRefundNote(content.getText().toString());
+                    builder.setTitle("退款备注");
+                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                            mOrderInteractor.refundOrder(order.getId(), wrapper, new IOrderInteractor.OnUpdateFinishListener() {
+                                @Override
+                                public void onUpdateSuccess() {
+                                    order.setIsPaid("2");
+                                    mAdapter.notifyItemChanged(index);
+                                    mMainView.showMessage("退款成功");
+                                }
+
+                                @Override
+                                public void onUpdateError(String message) {
+                                    mMainView.showMessage("退款失败：" + message);
+                                }
+                            });
+                        }
+                    });
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                        }
+                    });
+
+                    builder.create().show();
+                }
+            } else {
+                mMainView.showMessage("退款失败：该订单未支付或已退款");
+            }
         }
     }
 

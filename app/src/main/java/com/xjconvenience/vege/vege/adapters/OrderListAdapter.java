@@ -16,6 +16,8 @@ import android.widget.TextView;
 import com.xjconvenience.vege.vege.R;
 import com.xjconvenience.vege.vege.models.Order;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 import butterknife.BindView;
@@ -38,7 +40,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
         void deleteOrder(int index);
 
-        void refundOrder(int index, String note);
+        void refundOrder(int index);
 
         void payOrder(int index);
 
@@ -71,6 +73,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         if (order != null) {
             if ("1".equals(order.getIsPaid())) {
                 holder.item_wrapper.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.paid_back));
+            } else if ("2".equals(order.getIsPaid())) {
+                holder.item_wrapper.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.refund_back));
             } else {
                 holder.item_wrapper.setCardBackgroundColor(ContextCompat.getColor(mContext, R.color.unpaid_back));
             }
@@ -235,26 +239,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
         @OnClick(R.id.ic_refund)
         public void refundOrder() {
-            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-            LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(R.layout.fragment_dialog, null);
-            builder.setView(view);
-            final EditText content = (EditText) view.findViewById(R.id.dialog_content);
-            builder.setTitle("退款备注");
-            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    mListener.refundOrder(getAdapterPosition(), content.getText().toString());
-                }
-            });
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-
-                }
-            });
-
-            builder.create().show();
+            mListener.refundOrder(getAdapterPosition());
         }
 
         @OnClick(R.id.ic_detail)

@@ -4,6 +4,7 @@ import com.xjconvenience.vege.vege.models.ItemsResult;
 import com.xjconvenience.vege.vege.models.LoginWrapper;
 import com.xjconvenience.vege.vege.models.Order;
 import com.xjconvenience.vege.vege.models.PatchDoc;
+import com.xjconvenience.vege.vege.models.RefundWrapper;
 import com.xjconvenience.vege.vege.models.Result;
 
 import java.util.List;
@@ -35,4 +36,7 @@ public interface VegeServices {
 
     @PATCH("api/orders/{id}")
     public Observable<Result<Boolean>> updateOrder(@Path("id") int id, @Body List<PatchDoc> order);
+
+    @POST("api/wechat/refund/{id}")
+    public Observable<Result<Boolean>> refundOrder(@Path("id") int id, @Body RefundWrapper wrapper);
 }

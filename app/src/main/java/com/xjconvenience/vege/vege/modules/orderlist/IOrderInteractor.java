@@ -2,6 +2,7 @@ package com.xjconvenience.vege.vege.modules.orderlist;
 
 import com.xjconvenience.vege.vege.models.Order;
 import com.xjconvenience.vege.vege.models.PatchDoc;
+import com.xjconvenience.vege.vege.models.RefundWrapper;
 
 import java.util.List;
 
@@ -33,4 +34,6 @@ public interface IOrderInteractor {
     }
 
     void updateOrder(int id, List<PatchDoc> order, OnUpdateFinishListener listener);
+
+    void refundOrder(int id, RefundWrapper wrapper, OnUpdateFinishListener listener);
 }
