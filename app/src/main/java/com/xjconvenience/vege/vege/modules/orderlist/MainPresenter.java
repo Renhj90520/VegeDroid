@@ -52,7 +52,7 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
     public void loadOrders(int lastVisible) {
         if (lastVisible >= mOrderList.size() - 1) {
             mMainView.showProgress();
-            mOrderInteractor.loadOrders(String.valueOf(index), String.valueOf(perPage), getKeyword(), getState(), "", "", "", new IOrderInteractor.OnLoadFinishListenter() {
+            mOrderInteractor.loadOrders(String.valueOf(index), String.valueOf(perPage), getKeyword(), getState(), "", "", "true", new IOrderInteractor.OnLoadFinishListenter() {
                 @Override
                 public void onLoadFinished(List<Order> orders) {
                     int currentSize = mOrderList.size();
@@ -78,7 +78,7 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
     public void refreshOrders() {
         mMainView.showProgress();
         index = 1;
-        mOrderInteractor.loadOrders(String.valueOf(index), String.valueOf(perPage), getKeyword(), getState(), "", "", "", new IOrderInteractor.OnLoadFinishListenter() {
+        mOrderInteractor.loadOrders(String.valueOf(index), String.valueOf(perPage), getKeyword(), getState(), "", "", "true", new IOrderInteractor.OnLoadFinishListenter() {
             @Override
             public void onLoadFinished(List<Order> orders) {
                 orderCostCompute(orders);
@@ -87,6 +87,7 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
                 mAdapter = new OrderListAdapter((MainActivity) mMainView, mOrderList);
                 mAdapter.notifyDataSetChanged();
                 mMainView.setItems(mAdapter);
+                mAdapter.setOperatorListener(MainPresenter.this);
                 mMainView.hideProgress();
             }
 
@@ -323,6 +324,31 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
                 @Override
                 public void onUpdateError(String message) {
                     mMainView.showMessage("现金支付失败：" + message);
+                }
+            });
+        }
+    }
+
+    @Override
+    public void completeOrder(final int index) {
+        final Order order = mOrderList.get(index);
+        if (order != null) {
+            List<PatchDoc> patchDocs = new ArrayList<>();
+            PatchDoc patchDoc = new PatchDoc();
+            patchDoc.setPath("State");
+            patchDoc.setValue(5);
+            patchDocs.add(patchDoc);
+            mOrderInteractor.updateOrder(order.getId(), patchDocs, new IOrderInteractor.OnUpdateFinishListener() {
+                @Override
+                public void onUpdateSuccess() {
+                    order.setState(5);
+                    mAdapter.notifyItemChanged(index);
+                    mMainView.showMessage("交易已完成");
+                }
+
+                @Override
+                public void onUpdateError(String message) {
+                    mMainView.showMessage("交易完成失败：" + message);
                 }
             });
         }

@@ -1,10 +1,13 @@
 package com.xjconvenience.vege.vege.modules.orderdetail;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 
 import com.xjconvenience.vege.vege.R;
 import com.xjconvenience.vege.vege.adapters.ProductListAdapter;
@@ -24,12 +27,19 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     @BindView(R.id.products_list)
     RecyclerView products_list;
+    @BindView(R.id.detailtoolbar)
+    Toolbar mToolbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
         ButterKnife.bind(this);
+
+        mToolbar.setTitleTextColor(Color.WHITE);
+        setSupportActionBar(mToolbar);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("商品列表");
 
         List<OrderItem> products = getIntent().getParcelableArrayListExtra(ITEM_LIST);
         ProductListAdapter adapter = new ProductListAdapter(products);

@@ -44,6 +44,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
 
         void payOrder(int index);
 
+        void completeOrder(int index);
+
         void goDetail(int index);
     }
 
@@ -194,6 +196,46 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
                 }
             });
 
+            builder.create().show();
+        }
+
+        @OnClick(R.id.ic_print)
+        public void printOrder() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle("确认");
+            builder.setMessage("确认打印该订单吗");
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.create().show();
+        }
+
+        @OnClick(R.id.ic_complete)
+        public void completeOrder() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle("确认");
+            builder.setMessage("该订单确认已完成交易？");
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
             builder.create().show();
         }
 

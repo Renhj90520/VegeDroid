@@ -11,8 +11,10 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -91,6 +93,29 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
+
+                RecyclerView.LayoutManager layoutManager = order_list.getLayoutManager();
+                if (layoutManager instanceof LinearLayoutManager) {
+                    lastVisibleIndex = ((LinearLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
+                }
+                if (layoutManager instanceof GridLayoutManager) {
+                    lastVisibleIndex = ((GridLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
+                }
+                if (layoutManager instanceof StaggeredGridLayoutManager) {
+                    int[] lastList = null;
+                    StaggeredGridLayoutManager manager = (StaggeredGridLayoutManager) layoutManager;
+                    lastList = new int[manager.getSpanCount()];
+                    int[] lastVisibleItemPositions = manager.findLastCompletelyVisibleItemPositions(lastList);
+
+                    for (int i : lastList) {
+                        lastVisibleIndex = i > lastVisibleIndex ? i : lastVisibleIndex;
+                    }
+                }
+
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    mPresenter.loadOrders(lastVisibleIndex);
+                }
+
             }
 
             @Override
