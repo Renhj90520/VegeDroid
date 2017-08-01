@@ -251,20 +251,20 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
                 refund_cost.setText(String.valueOf(order.getTotalCost()));
                 refund_cost.setVisibility(View.VISIBLE);
 
-                double refundCost = Double.parseDouble(refund_cost.getText().toString());
-                double totalCost = order.getTotalCost();
-                if (refundCost > totalCost) {
-                    mMainView.showMessage("退款失败：退款金额大于订单金额");
-                } else {
-                    final RefundWrapper wrapper = new RefundWrapper();
-                    wrapper.setTotalCost((int) (totalCost * 100));
-                    wrapper.setRefundCost((int) (refundCost * 100));
-                    wrapper.setRefundNote(content.getText().toString());
-                    builder.setTitle("退款备注");
-                    builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
+                builder.setTitle("退款备注");
 
+                builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        double refundCost = Double.parseDouble(refund_cost.getText().toString());
+                        double totalCost = order.getTotalCost();
+                        if (refundCost > totalCost) {
+                            mMainView.showMessage("退款失败：退款金额大于订单金额");
+                        } else {
+                            final RefundWrapper wrapper = new RefundWrapper();
+                            wrapper.setTotalCost((int) (totalCost * 100));
+                            wrapper.setRefundCost((int) (refundCost * 100));
+                            wrapper.setRefundNote(content.getText().toString());
                             mOrderInteractor.refundOrder(order.getId(), wrapper, new IOrderInteractor.OnUpdateFinishListener() {
                                 @Override
                                 public void onUpdateSuccess() {
@@ -279,16 +279,16 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
                                 }
                             });
                         }
-                    });
-                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
 
-                        }
-                    });
+                    }
+                });
 
-                    builder.create().show();
-                }
+                builder.create().show();
             } else {
                 mMainView.showMessage("退款失败：该订单未支付或已退款");
             }
