@@ -88,6 +88,7 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
                 mAdapter.notifyDataSetChanged();
                 mMainView.setItems(mAdapter);
                 mAdapter.setOperatorListener(MainPresenter.this);
+                index++;
                 mMainView.hideProgress();
             }
 
@@ -358,6 +359,16 @@ public class MainPresenter implements MainContract.IMainPresenter, OrderListAdap
     public void goDetail(int index) {
         Order order = mOrderList.get(index);
         mMainView.navigateToDetail(order);
+    }
+
+    @Override
+    public void printOrder(int index) {
+        Order order = mOrderList.get(index);
+        if (order != null) {
+            mMainView.printOrder(order);
+        } else {
+            mMainView.showMessage("打印的订单不存在！");
+        }
     }
 
     public String getKeyword() {

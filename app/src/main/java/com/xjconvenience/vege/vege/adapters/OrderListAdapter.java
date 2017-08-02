@@ -47,6 +47,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         void completeOrder(int index);
 
         void goDetail(int index);
+
+        void printOrder(int index);
     }
 
     private OperatorListener mListener;
@@ -207,7 +209,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-
+                    mListener.printOrder(getAdapterPosition());
                 }
             });
             builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -227,7 +229,7 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-
+                    mListener.completeOrder(getAdapterPosition());
                 }
             });
             builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {

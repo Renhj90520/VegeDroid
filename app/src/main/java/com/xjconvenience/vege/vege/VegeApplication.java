@@ -28,7 +28,7 @@ public class VegeApplication extends Application {
     public void onCreate() {
         super.onCreate();
         resolveDependencies();
-        JPushInterface.setDebugMode(true);
+        JPushInterface.setDebugMode(false);
         JPushInterface.init(this);
     }
 
