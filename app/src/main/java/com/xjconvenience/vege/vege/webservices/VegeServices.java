@@ -1,5 +1,6 @@
 package com.xjconvenience.vege.vege.webservices;
 
+import com.xjconvenience.vege.vege.models.Coupon;
 import com.xjconvenience.vege.vege.models.ItemsResult;
 import com.xjconvenience.vege.vege.models.LoginWrapper;
 import com.xjconvenience.vege.vege.models.Order;
@@ -39,4 +40,7 @@ public interface VegeServices {
 
     @POST("api/wechat/refund/{id}")
     public Observable<Result<Boolean>> refundOrder(@Path("id") int id, @Body RefundWrapper wrapper);
+
+    @GET("api/wechat/coupons/validity")
+    public Observable<Result<Coupon>> getValidityCoupon();
 }

@@ -4,19 +4,25 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <TextView
-        android:layout_width="350dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="20dp"
-        android:text="关注公众号"
-        android:textAppearance="?android:attr/textAppearanceLarge"/>
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"></android.support.v7.widget.Toolbar>
 
-    <ImageView
-        android:layout_width="350dp"
-        android:layout_height="350dp"
-        android:layout_gravity="center_horizontal"
-        android:src="@drawable/qr_follow"
-        />
+    <android.support.v4.view.ViewPager
+        android:id="@+id/vPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v4.view.PagerTabStrip
+            android:id="@+id/pagerHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:paddingBottom="4dp"
+            android:paddingTop="4dp">
+
+        </android.support.v4.view.PagerTabStrip>
+    </android.support.v4.view.ViewPager>
 </LinearLayout>
