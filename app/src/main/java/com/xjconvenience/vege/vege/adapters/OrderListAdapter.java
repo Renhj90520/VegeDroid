@@ -94,13 +94,13 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
             }
             holder.total_cost.setText(total_cost);
             if (order.getCancelReason() != null && !order.getCancelReason().isEmpty()) {
-                holder.cancel_reason.setText(order.getCancelReason());
+                holder.cancel_reason.setText(order.getCancelReason().trim());
                 holder.reason_wrapper.setVisibility(View.VISIBLE);
             } else {
                 holder.reason_wrapper.setVisibility(View.GONE);
             }
             if (order.getRefundNote() != null && !order.getRefundNote().isEmpty()) {
-                holder.refund_note.setText(order.getRefundNote());
+                holder.refund_note.setText(order.getRefundNote().trim());
                 holder.note_wrapper.setVisibility(View.VISIBLE);
             } else {
                 holder.note_wrapper.setVisibility(View.GONE);

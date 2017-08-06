@@ -1,6 +1,8 @@
 package com.xjconvenience.vege.vege.modules.orderlist;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -35,6 +37,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -54,6 +57,8 @@ import com.gprinter.command.LabelCommand.FONTMUL;
 import com.gprinter.command.EscCommand.JUSTIFICATION;
 import com.gprinter.command.EscCommand.FONT;
 import com.gprinter.command.EscCommand.HRI_POSITION;
+import com.gprinter.io.GpDevice;
+import com.gprinter.io.PortParameters;
 import com.gprinter.service.GpPrintService;
 import com.xjconvenience.vege.vege.Constants;
 import com.xjconvenience.vege.vege.R;
@@ -66,6 +71,9 @@ import com.xjconvenience.vege.vege.modules.orderdetail.OrderDetailActivity;
 import com.xjconvenience.vege.vege.modules.share.ShareActivity;
 import com.xjconvenience.vege.vege.utils.PackUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.inject.Inject;
@@ -74,7 +82,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import cn.jpush.android.api.JPushInterface;
 
+import static android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE;
+
 public class MainActivity extends AppCompatActivity implements MainContract.IMainView {
+    private static final int REQUEST_ENABLE_BT = 2;
     public static boolean isForeground = false;
     public static final String MESSAGE_RECEIVED_ACTION = "MESSAGE_RECEIVED_ACTION";
     public static final String KEY_MESSAGE = "message";
@@ -87,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
     private int mPrinterIndex = 0;
     private int mTotalCopies = 0;
     private static final int MAIN_QUERY_PRINTER_STATUS = 0xfe;
-    private static final int REQUEST_PRINT_LABEL = 0xfd;
     private static final int REQUEST_PRINT_RECEIPT = 0xfc;
     private Order currPrintOrder;
     @BindView(R.id.order_list)
@@ -167,25 +177,12 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
 
         connection();
         registerReceiver(mBroadcastReceiver, new IntentFilter(GpCom.ACTION_DEVICE_REAL_STATUS));
-        /**
-         * 票据模式下，可注册该广播，在需要打印内容的最后加入addQueryPrinterStatus()，在打印完成后会接收到
-         * action为GpCom.ACTION_DEVICE_STATUS的广播，特别用于连续打印，
-         * 可参照该sample中的sendReceiptWithResponse方法与广播中的处理
-         **/
-        registerReceiver(mBroadcastReceiver, new IntentFilter(GpCom.ACTION_RECEIPT_RESPONSE));
-        /**
-         * 标签模式下，可注册该广播，在需要打印内容的最后加入addQueryPrinterStatus(RESPONSE_MODE mode)
-         * ，在打印完成后会接收到，action为GpCom.ACTION_LABEL_RESPONSE的广播，特别用于连续打印，
-         * 可参照该sample中的sendLabelWithResponse方法与广播中的处理
-         **/
-        registerReceiver(mBroadcastReceiver, new IntentFilter(GpCom.ACTION_LABEL_RESPONSE));
     }
 
     @Override
     protected void onResume() {
         isForeground = true;
         super.onResume();
-        JPushInterface.resumePush(this);
     }
 
     @Override
@@ -256,6 +253,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
             case R.id.menu_share:
                 Intent shareIntent = new Intent(this, ShareActivity.class);
                 startActivity(shareIntent);
+                return true;
+            case R.id.menu_bluetooth:
+                getBluetoothDevice();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -370,13 +370,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
                         }
                     }
                     Toast.makeText(getApplicationContext(), "打印机状态：" + str, Toast.LENGTH_LONG).show();
-                } else if (requestCode == REQUEST_PRINT_LABEL) {
-                    int status = intent.getIntExtra(GpCom.EXTRA_PRINTER_REAL_STATUS, 16);
-                    if (status == GpCom.STATE_NO_ERR) {
-                        sendLabel();
-                    } else {
-                        Toast.makeText(MainActivity.this, "查询打印机状态错误", Toast.LENGTH_SHORT).show();
-                    }
                 } else if (requestCode == REQUEST_PRINT_RECEIPT) {
                     int status = intent.getIntExtra(GpCom.EXTRA_PRINTER_REAL_STATUS, 16);
                     if (status == GpCom.STATE_NO_ERR) {
@@ -389,83 +382,50 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
                         Toast.makeText(MainActivity.this, "查询打印机状态错误", Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else if (action.equals(GpCom.ACTION_RECEIPT_RESPONSE)) {
-                if (--mTotalCopies > 0) {
-                    sendReceiptWithResponse();
-                }
-            } else if (action.equals(GpCom.ACTION_LABEL_RESPONSE)) {
-                byte[] data = intent.getByteArrayExtra(GpCom.EXTRA_PRINTER_LABEL_RESPONSE);
-                int cnt = intent.getIntExtra(GpCom.EXTRA_PRINTER_LABEL_RESPONSE_CNT, 1);
-                String d = new String(data, 0, cnt);
-                /**
-                 * 这里的d的内容根据RESPONSE_MODE去判断返回的内容去判断是否成功，具体可以查看标签编程手册SET
-                 * RESPONSE指令
-                 * 该sample中实现的是发一张就返回一次,这里返回的是{00,00001}。这里的对应{Status,######,ID}
-                 * 所以我们需要取出STATUS
-                 */
-                Log.d("LABEL RESPONSE", d);
-
-                if (--mTotalCopies > 0 && d.charAt(1) == 0x00) {
-                    sendLabelWithResponse();
-                }
             }
         }
     };
-
-    void sendLabel() {
-        LabelCommand tsc = new LabelCommand();
-        tsc.addSize(60, 60); // 设置标签尺寸，按照实际尺寸设置
-        tsc.addGap(0); // 设置标签间隙，按照实际尺寸设置，如果为无间隙纸则设置为0
-        tsc.addDirection(DIRECTION.BACKWARD, MIRROR.NORMAL);// 设置打印方向
-        tsc.addReference(0, 0);// 设置原点坐标
-        tsc.addTear(ENABLE.ON); // 撕纸模式开启
-        tsc.addCls();// 清除打印缓冲区
-        // 绘制简体中文
-        tsc.addText(20, 20, FONTTYPE.SIMPLIFIED_CHINESE, ROTATION.ROTATION_0, FONTMUL.MUL_1, FONTMUL.MUL_1,
-                "Welcome to use SMARNET printer!");
-    }
 
     void sendReceipt() {
         EscCommand esc = new EscCommand();
         esc.addInitializePrinter();
         esc.addPrintAndFeedLines((byte) 3);
         esc.addSelectJustification(JUSTIFICATION.CENTER);// 设置打印居中
-        esc.addSelectJustification(JUSTIFICATION.LEFT);
-        esc.addText(String.valueOf(currPrintOrder.getId()));
-        esc.addSelectJustification(JUSTIFICATION.RIGHT);
-        esc.addText(currPrintOrder.getCreateTime() + "\n");
+        esc.addSelectPrintModes(FONT.FONTA, ENABLE.OFF, ENABLE.ON, ENABLE.ON, ENABLE.OFF);// 设置为倍高倍宽
+        esc.addText("方便生活\n");
 
+        esc.addSelectPrintModes(FONT.FONTA, ENABLE.OFF, ENABLE.OFF, ENABLE.OFF, ENABLE.OFF);// 取消倍高倍宽
+        esc.addPrintAndFeedLines((byte) 1);
         esc.addSelectJustification(JUSTIFICATION.LEFT);
-        esc.addText(currPrintOrder.getName());
-        esc.addSelectJustification(JUSTIFICATION.RIGHT);
-        esc.addText(currPrintOrder.getPhone() + "\n");
+        esc.addText(String.valueOf(currPrintOrder.getId() + "       " + currPrintOrder.getCreateTime() + "\n"));
+        esc.addPrintAndFeedLines((byte) 1);
 
-        esc.addSelectJustification(JUSTIFICATION.LEFT);
-        esc.addText("名称     单价     数量");
-        esc.addSelectJustification(JUSTIFICATION.RIGHT);
-        esc.addText("小计\n");
+        esc.addText(currPrintOrder.getName() + "     " + currPrintOrder.getPhone() + "\n");
+        esc.addPrintAndFeedLines((byte) 1);
+
+        esc.addText(currPrintOrder.getStreet() + "\n");
+        esc.addPrintAndFeedLines((byte) 1);
+
+        esc.addText("名称     单价     数量     小计\n");
+        esc.addPrintAndFeedLines((byte) 1);
+
         double totalCost = 0;
         for (int i = 0; i < currPrintOrder.getProducts().size(); i++) {
             esc.addSelectJustification(JUSTIFICATION.LEFT);
             OrderItem item = currPrintOrder.getProducts().get(i);
-            esc.addText(item.getName() + "  " + item.getPrice() + "/" + item.getUnitName() + "  " + item.getCount());
-            esc.addSelectJustification(JUSTIFICATION.RIGHT);
             double cost = item.getPrice() * item.getCount();
             totalCost += cost;
-            esc.addText("￥" + String.valueOf(cost));
+            esc.addText(item.getName() + "  " + item.getPrice() + "/" + item.getUnitName() + "   " + item.getCount() + "    ￥" + String.valueOf(cost) + "\n");
+            esc.addPrintAndFeedLines((byte) 1);
         }
-        esc.addPrintAndLineFeed();
-
-        esc.addSelectPrintModes(FONT.FONTA, ENABLE.OFF, ENABLE.ON, ENABLE.ON, ENABLE.OFF);// 设置为倍高倍宽
         esc.addSelectJustification(JUSTIFICATION.LEFT);
         esc.addText("总计：");
-        esc.addSelectJustification(JUSTIFICATION.RIGHT);
         String totalStr = "￥" + totalCost;
         if (currPrintOrder.getDeliveryCharge() > 0) {
             totalStr += "(含运费￥" + currPrintOrder.getDeliveryCharge() + ")";
         }
         esc.addText(totalStr);
-        esc.addPrintAndLineFeed();
+        esc.addPrintAndFeedLines((byte) 6);
 
         Vector<Byte> datas = esc.getCommand(); // 发送数据
         byte[] bytes = GpUtils.ByteTo_byte(datas);
@@ -480,118 +440,6 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
             currPrintOrder = null;
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    void sendReceiptWithResponse() {
-        EscCommand esc = new EscCommand();
-        esc.addInitializePrinter();
-        esc.addPrintAndFeedLines((byte) 3);
-        esc.addSelectJustification(JUSTIFICATION.CENTER);// 设置打印居中
-        esc.addSelectPrintModes(FONT.FONTA, ENABLE.OFF, ENABLE.ON, ENABLE.ON, ENABLE.OFF);// 设置为倍高倍宽
-        esc.addText("Sample\n"); // 打印文字
-        esc.addPrintAndLineFeed();
-
-		/* 打印文字 */
-        esc.addSelectPrintModes(FONT.FONTA, ENABLE.OFF, ENABLE.OFF, ENABLE.OFF, ENABLE.OFF);// 取消倍高倍宽
-        esc.addSelectJustification(JUSTIFICATION.LEFT);// 设置打印左对齐
-        esc.addText("Print text\n"); // 打印文字
-        esc.addText("Welcome to use SMARNET printer!\n"); // 打印文字
-
-		/* 打印繁体中文 需要打印机支持繁体字库 */
-        String message = "佳博智匯票據打印機\n";
-        // esc.addText(message,"BIG5");
-        esc.addText(message, "GB2312");
-        esc.addPrintAndLineFeed();
-
-		/* 绝对位置 具体详细信息请查看GP58编程手册 */
-        esc.addText("智汇");
-        esc.addSetHorAndVerMotionUnits((byte) 7, (byte) 0);
-        esc.addSetAbsolutePrintPosition((short) 6);
-        esc.addText("网络");
-        esc.addSetAbsolutePrintPosition((short) 10);
-        esc.addText("设备");
-        esc.addPrintAndLineFeed();
-
-		/* 打印图片 */
-        // esc.addText("Print bitmap!\n"); // 打印文字
-        // Bitmap b = BitmapFactory.decodeResource(getResources(),
-        // R.drawable.gprinter);
-        // esc.addRastBitImage(b, 384, 0); // 打印图片
-
-		/* 打印一维条码 */
-        esc.addText("Print code128\n"); // 打印文字
-        esc.addSelectPrintingPositionForHRICharacters(HRI_POSITION.BELOW);//
-        // 设置条码可识别字符位置在条码下方
-        esc.addSetBarcodeHeight((byte) 60); // 设置条码高度为60点
-        esc.addSetBarcodeWidth((byte) 1); // 设置条码单元宽度为1
-        esc.addCODE128(esc.genCodeB("SMARNET")); // 打印Code128码
-        esc.addPrintAndLineFeed();
-
-		/*
-         * QRCode命令打印 此命令只在支持QRCode命令打印的机型才能使用。 在不支持二维码指令打印的机型上，则需要发送二维条码图片
-		 */
-        esc.addText("Print QRcode\n"); // 打印文字
-        esc.addSelectErrorCorrectionLevelForQRCode((byte) 0x31); // 设置纠错等级
-        esc.addSelectSizeOfModuleForQRCode((byte) 3);// 设置qrcode模块大小
-        esc.addStoreQRCodeData("www.smarnet.cc");// 设置qrcode内容
-        esc.addPrintQRCode();// 打印QRCode
-        esc.addPrintAndLineFeed();
-
-		/* 打印文字 */
-        esc.addSelectJustification(JUSTIFICATION.CENTER);// 设置打印左对齐
-        esc.addText("Completed!\r\n"); // 打印结束
-        // 开钱箱
-        esc.addGeneratePlus(LabelCommand.FOOT.F5, (byte) 255, (byte) 255);
-        esc.addPrintAndFeedLines((byte) 8);
-
-        // 加入查询打印机状态，打印完成后，此时会接收到GpCom.ACTION_DEVICE_STATUS广播
-        esc.addQueryPrinterStatus();
-
-        Vector<Byte> datas = esc.getCommand(); // 发送数据
-        byte[] bytes = GpUtils.ByteTo_byte(datas);
-        String sss = Base64.encodeToString(bytes, Base64.DEFAULT);
-        int rs;
-        try {
-            rs = mGpService.sendEscCommand(mPrinterIndex, sss);
-            GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rs];
-            if (r != GpCom.ERROR_CODE.SUCCESS) {
-                Toast.makeText(getApplicationContext(), GpCom.getErrorText(r), Toast.LENGTH_SHORT).show();
-            }
-        } catch (RemoteException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    void sendLabelWithResponse() {
-        LabelCommand tsc = new LabelCommand();
-        tsc.addSize(60, 60); // 设置标签尺寸，按照实际尺寸设置
-        tsc.addGap(0); // 设置标签间隙，按照实际尺寸设置，如果为无间隙纸则设置为0
-        tsc.addDirection(DIRECTION.BACKWARD, MIRROR.NORMAL);// 设置打印方向
-        tsc.addReference(0, 0);// 设置原点坐标
-        tsc.addTear(ENABLE.ON); // 撕纸模式开启
-        tsc.addCls();// 清除打印缓冲区
-        // 绘制简体中文
-        tsc.addText(20, 20, FONTTYPE.SIMPLIFIED_CHINESE, ROTATION.ROTATION_0, FONTMUL.MUL_1, FONTMUL.MUL_1,
-                "Welcome to use SMARNET printer!");
-
-        tsc.addPrint(1, 1); // 打印标签
-        tsc.addSound(2, 100); // 打印标签后 蜂鸣器响
-        tsc.addCashdrwer(LabelCommand.FOOT.F5, 255, 255);
-
-        Vector<Byte> datas = tsc.getCommand(); // 发送数据
-        byte[] bytes = GpUtils.ByteTo_byte(datas);
-        String str = Base64.encodeToString(bytes, Base64.DEFAULT);
-        int rel;
-        try {
-            rel = mGpService.sendLabelCommand(mPrinterIndex, str);
-            GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rel];
-            if (r != GpCom.ERROR_CODE.SUCCESS) {
-                Toast.makeText(getApplicationContext(), GpCom.getErrorText(r), Toast.LENGTH_SHORT).show();
-            }
-        } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
@@ -612,6 +460,51 @@ public class MainActivity extends AppCompatActivity implements MainContract.IMai
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mGpService = null;
+        }
+    }
+
+    public void getBluetoothDevice() {
+        // Get local Bluetooth adapter
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter
+                .getDefaultAdapter();
+        // If the adapter is null, then Bluetooth is not supported
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "设备不支持蓝牙", Toast.LENGTH_LONG).show();
+        } else {
+            // If BT is not on, request that it be enabled.
+            // setupChat() will then be called during onActivityResult
+
+            if (!bluetoothAdapter.isEnabled()) {
+                //如果蓝牙没开则要求打开蓝牙
+                Intent enableIntent = new Intent(ACTION_REQUEST_ENABLE);
+
+                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            } else {
+                final List<String> deviceNameList = new ArrayList<>();
+                Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+                if (pairedDevices.size() > 0) {
+                    for (BluetoothDevice device : pairedDevices) {
+                        deviceNameList.add(device.getName() + "\n" + device.getAddress());
+                    }
+                    ListAdapter devicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, deviceNameList);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("选择打印机蓝牙设备");
+                    builder.setAdapter(devicesAdapter, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            String nameAndAddr = deviceNameList.get(i);
+                            String addr = nameAndAddr.split("\n")[1];
+                            try {
+                                mGpService.openPort(0, PortParameters.BLUETOOTH, addr, 0);
+                                Toast.makeText(MainActivity.this, "打印机连接成功", Toast.LENGTH_LONG).show();
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    builder.create().show();
+                }
+            }
         }
     }
 }

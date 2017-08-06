@@ -5,15 +5,20 @@
         android:id="@+id/menu_search"
         android:icon="@drawable/ic_search_black_24dp"
         android:title="检索"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
     <item
         android:id="@+id/menu_share"
         android:icon="@drawable/ic_share_black_24dp"
         android:title="推广"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/menu_bluetooth"
+        android:icon="@drawable/ic_bluetooth_searching_black_24dp"
+        android:title="连接打印机"
+        app:showAsAction="always"/>
     <item
         android:id="@+id/menu_exit"
         android:icon="@drawable/ic_exit_to_app_black_24dp"
         android:title="注销"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="always"/>
 </menu>
